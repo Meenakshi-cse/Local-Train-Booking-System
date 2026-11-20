@@ -1,0 +1,7 @@
+[build]
+  publish = "local-train"
+
+[[redirects]]
+  from = "/"
+  to = "/pages/project_page1.html"
+  status = 301

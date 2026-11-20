@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Confirmation - Local Train Booking System</title>
+  <link rel="stylesheet" href="../css/style1.css">
+  <!-- jsPDF for PDF download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @media print {
+      body {
+        background: none !important;
+        background-color: white !important;
+      }
+      button, .btn {
+        display: none !important;
+      }
+      .container {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Your Train Ticket</h2>
+    <div id="ticketContainer">
+      <div id="ticketDetails" class="ticket-card"></div>
+
+      <button type="button" id="printBtn" class="btn" onclick="window.print()">Print Ticket</button>
+      <button type="button" id="pdfBtn" class="btn btn-success" onclick="downloadPDF()">Download Ticket as PDF</button>
+      <button type="button" class="btn" onclick="window.location.href='project_page_booking.html'">Book Another Ticket</button>
+      <button type="button" class="btn btn-secondary" onclick="window.location.href='project_page3.html'">Back to Dashboard</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let details = null;
+      try {
+        details = JSON.parse(localStorage.getItem("lastBooking"));
+      } catch (e) {
+        console.error("Failed to parse last booking:", e);
+      }
+
+      if (details) {
+        renderTicket(details);
+      } else {
+        renderNoTicket();
+      }
+    });
+
+    function renderNoTicket() {
+      const ticketDiv = document.getElementById("ticketDetails");
+      ticketDiv.className = "no-ticket-msg";
+      ticketDiv.innerHTML = "<p>No recent ticket booking found.</p><p>Please book a train ticket first.</p>";
+
+      const printBtn = document.getElementById("printBtn");
+      const pdfBtn = document.getElementById("pdfBtn");
+      if (printBtn) printBtn.style.display = "none";
+      if (pdfBtn) pdfBtn.style.display = "none";
+    }
+
+    function renderTicket(details) {
+      const ticketDiv = document.getElementById("ticketDetails");
+      ticketDiv.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "ticket-header";
+      header.innerHTML = "<h3>INDIAN RAILWAYS - LOCAL TICKET</h3>";
+      ticketDiv.appendChild(header);
+
+      const rows = [
+        ["Ticket Number", details.ticketNumber || "N/A"],
+        ["Passenger Name", details.passengerName || "N/A"],
+        ["Passenger Type", details.passengerType || "General"],
+        ["Train Name", details.train || "Demo Express"],
+        ["Seat Number", details.seatNumber || "N/A"],
+        ["Source Station", details.source || "N/A"],
+        ["Destination Station", details.destination || "N/A"],
+        ["Date of Journey", details.date || "N/A"]
+      ];
+
+      if (details.bookingTime) {
+        rows.push(["Booking Time", details.bookingTime]);
+      }
+
+      rows.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "detail";
+
+        const strong = document.createElement("strong");
+        strong.textContent = label + ": ";
+
+        const span = document.createElement("span");
+        span.textContent = String(value);
+
+        row.appendChild(strong);
+        row.appendChild(span);
+        ticketDiv.appendChild(row);
+      });
+    }
+
+    function downloadPDF() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("PDF generator library could not be loaded. Please use the Print Ticket option instead.");
+        return;
+      }
+
+      let details = null;
+      try {
+        details = JSON.parse(localStorage.getItem("lastBooking"));
+      } catch (e) {}
+
+      if (!details) {
+        alert("No booking details found to download.");
+        return;
+      }
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Title header
+        doc.setFillColor(0, 120, 215);
+        doc.rect(0, 0, 210, 25, "F");
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("INDIAN RAILWAYS - LOCAL TRAIN TICKET", 105, 16, { align: "center" });
+
+        // Content
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+
+        const displayItems = [
+          ["Ticket Number", details.ticketNumber || "N/A"],
+          ["Passenger Name", details.passengerName || "N/A"],
+          ["Passenger Category", details.passengerType || "General"],
+          ["Train", details.train || "Local Express"],
+          ["Seat / Coach", details.seatNumber || "N/A"],
+          ["From (Source)", details.source || "N/A"],
+          ["To (Destination)", details.destination || "N/A"],
+          ["Travel Date", details.date || "N/A"]
+        ];
+
+        if (details.bookingTime) {
+          displayItems.push(["Booked On", details.bookingTime]);
+        }
+
+        let y = 45;
+        // Draw decorative box
+        doc.setDrawColor(0, 120, 215);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, 35, 170, displayItems.length * 11 + 10, 3, 3);
+
+        displayItems.forEach(([label, value]) => {
+          doc.setFont("helvetica", "bold");
+          doc.text(`${label}:`, 30, y);
+          doc.setFont("helvetica", "normal");
+          doc.text(`${value}`, 85, y);
+          y += 11;
+        });
+
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text("Happy Journey! Please carry valid government photo ID along with this ticket.", 105, y + 10, { align: "center" });
+
+        doc.save(`Train_Ticket_${details.ticketNumber || "download"}.pdf`);
+      } catch (err) {
+        console.error("PDF generation error:", err);
+        alert("Failed to generate PDF. You can print the ticket using the Print Ticket button.");
+      }
+    }
+  </script>
+</body>
+</html>

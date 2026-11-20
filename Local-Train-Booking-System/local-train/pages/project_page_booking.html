@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Ticket - Local Train Booking System</title>
+  <link rel="stylesheet" href="../css/style1.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Book Your Train Ticket</h2>
+    <p class="subtitle">Enter your journey and passenger details</p>
+    <form id="bookingForm" onsubmit="return handleBookingSubmit(event)">
+      <label for="source">Source Station</label>
+      <input type="text" id="source" list="stationList" placeholder="e.g. Raipur, Durg, Bilaspur" required autocomplete="off">
+
+      <label for="destination">Destination Station</label>
+      <input type="text" id="destination" list="stationList" placeholder="e.g. Raipur, Durg, Bilaspur" required autocomplete="off">
+
+      <datalist id="stationList">
+        <option value="Raipur">
+        <option value="Durg">
+        <option value="Bilaspur">
+        <option value="Raigarh">
+        <option value="Antagarh">
+      </datalist>
+
+      <label for="date">Travel Date</label>
+      <input type="date" id="date" required>
+
+      <label for="passengerName">Passenger Name</label>
+      <input type="text" id="passengerName" placeholder="Full name of passenger" required>
+
+      <label for="passengerType">Passenger Type</label>
+      <select id="passengerType">
+        <option value="General">General</option>
+        <option value="Senior">Senior Citizen</option>
+        <option value="Child">Child</option>
+      </select>
+
+      <button type="submit">Confirm Booking</button>
+      <button type="button" class="btn-secondary" onclick="window.location.href='project_page3.html'">Back to Dashboard</button>
+    </form>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    // Ensure date cannot be set in the past by setting minimum date to today
+    document.addEventListener("DOMContentLoaded", () => {
+      const dateInput = document.getElementById("date");
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      dateInput.min = `${yyyy}-${mm}-${dd}`;
+    });
+
+    // Alias for backwards compatibility if called elsewhere
+    function bookTicket(e) {
+      return handleBookingSubmit(e);
+    }
+  </script>
+</body>
+</html>
